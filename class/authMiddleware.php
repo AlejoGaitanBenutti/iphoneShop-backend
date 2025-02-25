@@ -1,7 +1,5 @@
 <?php
 
-
-
 require_once __DIR__ . "/../vendor/autoload.php";
 
 use Firebase\JWT\JWT;
@@ -11,41 +9,31 @@ class authMiddleware
 {
     private static $clave_secreta = "clave_secreta_supr_segura";
 
-    public static function verificarJWT()
+    public static function verificarJWT($token = null)
     {
-
-        // Revisamos si se envio la cabecera authorization que viene desde el JS.
-
-        $headers = getallheaders(); // obtiene las cabeceras HTTP enviadas en la solicitud.
-        if (!isset($headers["Authorization"])) { // Ver si la cabecera tiene Authorization
-            http_response_code(401);
-            echo json_encode(["error" => "No autorizado: falta token"]);
-            exit;
+        // 🔹 Intentar obtener el token desde la cookie si no se pasa como argumento
+        if (!$token) {
+            if (!isset($_COOKIE['jwt'])) {
+                http_response_code(401);
+                echo json_encode(["error" => "No autorizado: falta token"]);
+                exit;
+            }
+            $token = $_COOKIE['jwt'];
         }
 
-
-
-        //Extraer el token (formato esperado: "Bearer <token>")
-
-        $authHeader = $headers['Authorization'];
-        $token = str_replace("Bearer ", "", $authHeader);
-
-
-
         try {
-            // Decodificar el JWT
-            $decoded = JWT::decode($token, new Key(self::$clave_secreta, 'HS256')); // ::decode decodifica el token con la clave secreta
-            return $decoded->data; // Retornamos los datos del usuario (correo y rol)
+            // 🔹 Decodificar el JWT
+            $decoded = JWT::decode($token, new Key(self::$clave_secreta, 'HS256'));
+            return $decoded->data; // 🔹 Retornar los datos del usuario (correo, rol)
         } catch (Exception $e) {
             http_response_code(401);
-            echo json_encode(["error" => "Token invalido"]);
+            echo json_encode(["error" => "Token inválido"]);
             exit;
         }
     }
 
     public static function verificarAdmin()
     {
-
         $userData = self::verificarJWT();
         if ($userData->rol !== "admin") {
             http_response_code(403);

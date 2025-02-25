@@ -2,32 +2,29 @@
 require_once __DIR__ . "/../vendor/autoload.php";
 require_once("../class/authMiddleware.php");
 
-header('Access-Control-Allow-Origin: *');
+header("Access-Control-Allow-Origin: http://localhost:5173"); // 🔹 Solo permitir el frontend
+header("Access-Control-Allow-Credentials: true"); // 🔹 Permitir credenciales (cookies)
 header("Access-Control-Allow-Methods: GET, OPTIONS");
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Content-Type: application/json');
+header("Access-Control-Allow-Headers: Content-Type, Authorization, Cookie");
+header("Content-Type: application/json");
 
-// ✅ Responder a las solicitudes OPTIONS sin hacer más validaciones
+// 🔹 Manejar preflight OPTIONS antes de procesar la solicitud
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
 
-// ✅ Ahora sí procesamos la petición con el token
-$headers = getallheaders();
-if (!isset($headers['Authorization'])) {
-    http_response_code(401);
-    echo json_encode(["error" => "No autorizado: falta token"]);
+// 🔹 Si no hay cookie, devolvemos un usuario `null` en lugar de `401`
+if (!isset($_COOKIE['jwt'])) {
+    echo json_encode(["usuario" => null]);
     exit;
 }
 
-$userData = AuthMiddleware::verificarJWT();
-
-// ✅ Asegurar que se devuelve un nombre (puedes modificar la base de datos para incluirlo en el JWT)
-$nombre = isset($userData->nombre) ? $userData->nombre : "Usuario Desconocido";
+// 🔹 Extraer y verificar el token desde la cookie
+$userData = AuthMiddleware::verificarJWT($_COOKIE['jwt']);
 
 echo json_encode([
     "correo" => $userData->correo,
     "rol" => $userData->rol,
-    "nombre" => $nombre
+    "nombre" => $userData->nombre
 ]);

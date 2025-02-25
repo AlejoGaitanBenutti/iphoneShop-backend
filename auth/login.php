@@ -1,51 +1,61 @@
 <?php
-require_once __DIR__ . "/../vendor/autoload.php"; // Incluir la librería JWT
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Content-Type: application/json');
+header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, Cookie");
+header("Content-Type: application/json");
 
-include_once('../class/conexion.php');
-include_once('../class/usuarios.php');
+// 🔹 Manejo de solicitudes OPTIONS
+if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
+    http_response_code(200);
+    exit;
+}
+
+require_once("../class/conexion.php");
+require_once("../class/usuarios.php");
 
 $database = new Database();
 $db = $database->getConnection();
 $usuarios = new Usuarios($db);
 
-// 🔹 Permitir solicitudes OPTIONS (para CORS)
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-
-// 🔹 Capturar los datos enviados
+// 🔹 Leer JSON del request
 $json = file_get_contents("php://input");
 $data = json_decode($json, true);
 
+// 🔹 Validar que el JSON sea válido
 if (!$data) {
-    error_log("Error: No se recibieron datos"); // Registrar en el log de errores
-    echo json_encode(["mensaje" => "Error: No se recibieron datos", "jsonRecibido" => $json]);
+    http_response_code(400);
+    echo json_encode(["mensaje" => "Error: No se recibieron datos"]);
     exit;
 }
 
-// 🔹 Verificar si los datos necesarios están presentes
-if (!empty($data['correo']) && !empty($data['password'])) {
-    $resultado = $usuarios->login($data['correo'], $data['password']);
+// 🔹 Validar credenciales
+if (!empty($data["correo"]) && !empty($data["password"])) {
+    $resultado = $usuarios->login($data["correo"], $data["password"]);
 
     if ($resultado && isset($resultado["token"])) {
+        // 🔹 Guardar JWT en una cookie segura
+        setcookie("jwt", $resultado["token"], [
+            "expires" => time() + 3600,
+            "path" => "/",
+            "domain" => "localhost", // 🔹 IMPORTANTE: Mantener vacío en producción
+            "secure" => false, // 🔹 Debe estar en `true` si usas HTTPS
+            "httponly" => true, // 🔹 Evita acceso desde JavaScript
+            "samesite" => "Lax" // 🔹 Permite cookies en la misma web
+        ]);
+
         echo json_encode([
             "mensaje" => "Login exitoso",
             "usuario" => [
-                "token" => $resultado["token"],
                 "rol" => $resultado["rol"],
                 "nombre" => $resultado["nombre"]
             ]
         ]);
     } else {
+        http_response_code(401);
         echo json_encode(["mensaje" => "Credenciales Incorrectas"]);
     }
 } else {
-    echo json_encode(["mensaje" => "Faltan datos para realizar el login", "jsonRecibido" => $json]);
+    http_response_code(400);
+    echo json_encode(["mensaje" => "Faltan datos para realizar el login"]);
 }
-
-$database->closeConnection();
