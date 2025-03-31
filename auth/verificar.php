@@ -28,7 +28,8 @@ if ($usuario) {
     // Si el usuario existe, actualizar su estado a verificado
     $idUsuario = $usuario['id'];
 
-    $updateSql = "UPDATE usuarios SET verificado = 1, token_verificacion = NULL WHERE id = :id";
+    $updateSql = "UPDATE usuarios SET verificado = 1 WHERE id = :id";
+
     $updateStmt = $conexion->prepare($updateSql);
     $updateStmt->bindParam(':id', $idUsuario, PDO::PARAM_INT);
     $updateStmt->execute();

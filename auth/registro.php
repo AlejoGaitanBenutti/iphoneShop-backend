@@ -42,10 +42,10 @@ if ($data === null) {
 }
 
 // Verifica que los datos esperados estén presentes
-error_log("Datos recibidos: Nombre: " . (isset($data->nombre) ? $data->nombre : 'No disponible') .
-    ", Correo: " . (isset($data->correo) ? $data->correo : 'No disponible') .
-    ", Username: " . (isset($data->username) ? $data->username : 'No disponible') .
-    ", Contraseña: " . (isset($data->password) ? $data->password : 'No disponible'));
+// error_log("Datos recibidos: Nombre: " . (isset($data->nombre) ? $data->nombre : 'No disponible') .
+//     ", Correo: " . (isset($data->correo) ? $data->correo : 'No disponible') .
+//     ", Username: " . (isset($data->username) ? $data->username : 'No disponible') .
+//     ", Contraseña: " . (isset($data->password) ? $data->password : 'No disponible'));
 
 // Verificar que todos los campos necesarios estén presentes y no vacíos
 if (empty($data->nombre) || empty($data->correo) || empty($data->username) || empty($data->password)) {

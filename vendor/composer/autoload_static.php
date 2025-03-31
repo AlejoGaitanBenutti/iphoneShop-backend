@@ -6,18 +6,28 @@ namespace Composer\Autoload;
 
 class ComposerStaticInit766fc4ef0402cc4e7a8bdba79372d4c2
 {
+    public static $files = array (
+        '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
         'P' => 
         array (
+            'Psr\\Container\\' => 14,
             'PHPMailer\\PHPMailer\\' => 20,
         ),
         'F' => 
         array (
             'Firebase\\JWT\\' => 13,
+            'Faker\\' => 6,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
+        'Psr\\Container\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/container/src',
+        ),
         'PHPMailer\\PHPMailer\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
@@ -25,6 +35,10 @@ class ComposerStaticInit766fc4ef0402cc4e7a8bdba79372d4c2
         'Firebase\\JWT\\' => 
         array (
             0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
+        ),
+        'Faker\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/fakerphp/faker/src/Faker',
         ),
     );
 

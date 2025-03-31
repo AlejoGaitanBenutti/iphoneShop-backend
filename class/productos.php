@@ -1,11 +1,12 @@
 <?php
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Content-Type: application/json');
-
+require_once __DIR__ . '../../utils/init.php';
 include_once('conexion.php');
 require_once('authMiddleware.php'); // Incluir middleware de autenticación
+require_once __DIR__ . '../../utils/cors.php';
+
+
+
+
 
 
 class Productos
@@ -51,11 +52,15 @@ class Productos
         try {
             $resource = $this->conexion->query($sql);
             if (!$resource) {
-                throw new Exception("Error en la consulta");
+                throw new Exception("Error en la consulta a la base de datos");
             }
             $result = $resource->fetchAll(PDO::FETCH_ASSOC);
 
-            echo json_encode($result);
+            if (empty($result)) {
+                echo json_encode(["mensaje" => "No hay productos disponibles"]);
+            } else {
+                echo json_encode($result);
+            }
         } catch (Exception $e) {
             echo json_encode(["error" => $e->getMessage()]);
         }
@@ -66,6 +71,7 @@ class Productos
 
         AuthMiddleware::verificarAdmin(); // Solo admin puede insertar
 
+        try {
         $sql = "INSERT INTO productos (marca, modelo, descripcion, descripcion_dos, precio, año, kilometraje, combustible, tipo_de_cuerpo, caja, transmicion, cv, color, imagen_uno, imagen_dos, imagen_tres, imagen_cuatro) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -90,10 +96,17 @@ class Productos
             $this->imagen_tres,
             $this->imagen_cuatro
         ];
-
-        return $stmt->execute($params);      // Ejecucion de la consulta vinculando los $params a los placeholders (?,?,?) en la consulta.  devuelve true si es exitosa la consulta
+        if ($stmt->execute($params)) {
+            return true;
+        } else {
+            throw new Exception("Error al ejecutar el insert");
+            } 
+        }catch(Exception $e){
+            error_log("❌ Error en insertar(): " . $e->getMessage());
+        echo json_encode(["error" => $e->getMessage()]);
+        exit;
+        }
     }
-
 
     public function eliminar($id)
     {
