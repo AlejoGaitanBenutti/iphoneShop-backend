@@ -2,7 +2,7 @@ services:
   - type: web
     name: reliable-erp-api
     env: php
+    plan: free
     buildCommand: ""
     startCommand: ""
-    plan: free
     rootDir: .
