@@ -1,0 +1,10 @@
+# Evitar que suba variables locales
+.env
+.env.local
+
+# Composer
+/vendor
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
