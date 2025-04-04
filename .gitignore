@@ -3,7 +3,7 @@
 .env.local
 
 # Certificados locales
-certificados/singlestore_bundle.pem
+
 
 # Composer
 /vendor
@@ -13,5 +13,5 @@ certificados/singlestore_bundle.pem
 Thumbs.db
 
 
-Dockerfile
+
 render.yaml
