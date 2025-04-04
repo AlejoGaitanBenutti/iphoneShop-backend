@@ -11,3 +11,7 @@ certificados/singlestore_bundle.pem
 # Archivos del sistema
 .DS_Store
 Thumbs.db
+
+
+Dockerfile
+render.yaml
