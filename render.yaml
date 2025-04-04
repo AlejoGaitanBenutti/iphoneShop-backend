@@ -3,9 +3,9 @@ services:
     name: backend-reliable
     env: docker
     buildCommand: |
-        apt-get update && apt-get install -y unzip curl php-cli php-mbstring git && \
-        curl -sS https://getcomposer.org/installer | php && \
-        php composer.phar install --no-dev
+      apt-get update && apt-get install -y unzip curl php-cli php-mbstring git && \
+      curl -sS https://getcomposer.org/installer | php && \
+      cd /var/www/html && php composer.phar install --no-dev
     startCommand: apache2-foreground
     envVars:
       - key: DB_HOST
