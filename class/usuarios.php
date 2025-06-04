@@ -74,29 +74,34 @@ class Usuarios
         return JWT::encode($payload, $this->clave_secreta, 'HS256');
     }
 
-    public function login($correo, $password)
-    {
-        $query = "SELECT id, nombre, correo, password, rol FROM " . $this->table_name . " WHERE correo = :correo LIMIT 1";
-        $stmt = $this->conexion->prepare($query);
-        $stmt->bindParam(":correo", $correo);
-        $stmt->execute();
+   public function login($correo, $password)
+{
+    $query = "SELECT id, nombre, correo, password, rol, verificado FROM " . $this->table_name . " WHERE correo = :correo LIMIT 1";
+    $stmt = $this->conexion->prepare($query);
+    $stmt->bindParam(":correo", $correo);
+    $stmt->execute();
 
-        if ($stmt->rowCount() > 0) {
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($stmt->rowCount() > 0) {
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (password_verify($password, $row['password'])) {
-                $token = $this->generarJWT($row['correo'], $row['rol'], $row['nombre']);
-
-                return [
-                    "mensaje" => "Login exitoso",
-                    "token" => $token,
-                    "rol" => $row['rol'],
-                    "nombre" => $row['nombre']
-                ];
-            }
+        if (!$row['verificado']) {
+            return ["error" => "Cuenta no verificada"];
         }
-        return false;
+
+        if (password_verify($password, $row['password'])) {
+            $token = $this->generarJWT($row['correo'], $row['rol'], $row['nombre']);
+            return [
+                "mensaje" => "Login exitoso",
+                "token" => $token,
+                "rol" => $row['rol'],
+                "nombre" => $row['nombre']
+            ];
+        }
     }
+
+    return false;
+}
+
 
     public function registrar($nombre, $correo, $password, $username)
     {
@@ -146,4 +151,30 @@ class Usuarios
             return false;
         }
     }
+
+     public function listarUsuarios()
+    {
+        try {
+            $stmt = $this->conexion->query("SELECT id, nombre, apellido, correo, rol FROM usuarios");
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Error en listarUsuarios(): " . $e->getMessage());
+            throw new Exception("Error al listar usuarios");
+        }
+    }
+
+    public function actualizarRol($id_usuario, $nuevoRol)
+    {
+        if (!in_array($nuevoRol, ['user', 'admin'])) {
+            throw new Exception("Rol no válido");
+        }
+
+        try {
+            $stmt = $this->conexion->prepare("UPDATE usuarios SET rol = ? WHERE id = ?");
+            return $stmt->execute([$nuevoRol, $id_usuario]);
+        } catch (Exception $e) {
+            error_log("Error en actualizarRol(): " . $e->getMessage());
+            throw new Exception("Error al actualizar el rol");
+        }
+}
 }
