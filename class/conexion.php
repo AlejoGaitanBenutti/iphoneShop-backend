@@ -5,7 +5,6 @@ class Database
 
     public function __construct()
     {
-        // Detectar entorno
         $entorno = $_ENV['APP_ENV'] ?? 'local';
 
         if ($entorno === 'production') {
@@ -14,6 +13,14 @@ class Database
             $dbname = $_ENV['DB_NAME_PROD'];
             $user = $_ENV['DB_USER_PROD'];
             $pass = $_ENV['DB_PASS_PROD'];
+
+            $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
+
+            // Opciones SSL para producción
+            $options = [
+                PDO::MYSQL_ATTR_SSL_CA => __DIR__ . '/../certificados/singlestore_bundle.pem',
+                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false
+            ];
         } else {
             $host = $_ENV['DB_HOST_LOCAL'] ?? 'localhost';
             $port = $_ENV['DB_PORT_LOCAL'] ?? '3306';
@@ -21,20 +28,14 @@ class Database
             $user = $_ENV['DB_USER_LOCAL'] ?? 'root';
             $pass = $_ENV['DB_PASS_LOCAL'] ?? '';
 
-            // Mostrar logs solo en local para debug
-            error_log("🛠 Conectando a base local -> host: $host, dbname: $dbname, user: $user");
+            $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
+            $options = [];
         }
-
-        $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
-
-        $options = [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_PERSISTENT => false,
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
-        ];
 
         try {
             $this->conexion = new PDO($dsn, $user, $pass, $options);
+            $this->conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            error_log("✅ Conexión exitosa");
         } catch (PDOException $e) {
             error_log("❌ Error PDO: " . $e->getMessage());
             throw new Exception("No se pudo establecer la conexión: " . $e->getMessage());
