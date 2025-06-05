@@ -11,17 +11,20 @@ RUN apt-get update \
 # Establece el directorio de trabajo en el contenedor
 WORKDIR /var/www/html
 
-# Copia los archivos de la app al contenedor
+# Copia certificados SSL antes que el resto para que no se pisen
+COPY certificados /var/www/html/certificados
+
+# Copia el resto del proyecto
 COPY . .
 
-# Instala las dependencias de Composer
+# Instala dependencias de Composer (si composer.json existe)
 RUN composer install --no-dev --optimize-autoloader || true
 
-# Habilita mod_rewrite de Apache (si usás URLs amigables)
+# Habilita mod_rewrite (útil para URLs amigables en Apache)
 RUN a2enmod rewrite
 
 # Expone el puerto 80
 EXPOSE 80
 
-# Comando para iniciar Apache en primer plano
+# Inicia Apache en primer plano
 CMD ["apache2-foreground"]
