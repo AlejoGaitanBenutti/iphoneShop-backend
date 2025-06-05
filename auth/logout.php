@@ -10,12 +10,25 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 $esProduccion = $_ENV['APP_ENV'] === 'production';
 $domain = $esProduccion ? "backend-reliable.onrender.com" : "";
 
-// 🔹 Eliminar cookie sin dominio (funciona en localhost)
-setcookie("jwt", "", time() - 3600, "/", "", false, true);
+// 🔸 Borrar cookie sin dominio (funciona en localhost y algunos navegadores en prod)
+setcookie("jwt", "", [
+    "expires" => time() - 3600,
+    "path" => "/",
+    "httponly" => true,
+    "samesite" => $esProduccion ? "None" : "Lax",
+    "secure" => $esProduccion,
+]);
 
-// 🔹 Eliminar cookie con dominio (funciona en producción)
+// 🔸 Borrar cookie con dominio explícito (para Safari / Chrome estrictos en producción)
 if ($esProduccion) {
-    setcookie("jwt", "", time() - 3600, "/", $domain, true, true);
+    setcookie("jwt", "", [
+        "expires" => time() - 3600,
+        "path" => "/",
+        "domain" => $domain,
+        "httponly" => true,
+        "samesite" => "None",
+        "secure" => true,
+    ]);
 }
 
 unset($_COOKIE['jwt']);
