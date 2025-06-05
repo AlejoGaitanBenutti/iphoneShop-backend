@@ -8,6 +8,9 @@ header("Access-Control-Allow-Methods: GET, OPTIONS, POST");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, Cookie");
 header("Content-Type: application/json");
 
+
+
+
 // 🔹 Agregar ambos puertos a CORS
 $allowed_origins = [
   "http://localhost:5173",
@@ -19,6 +22,8 @@ if (isset($_SERVER["HTTP_ORIGIN"]) && in_array($_SERVER["HTTP_ORIGIN"], $allowed
     header("Access-Control-Allow-Origin: " . $_SERVER["HTTP_ORIGIN"]);
 }
 
+error_log("🔍 Origin recibido: " . ($_SERVER["HTTP_ORIGIN"] ?? 'No origin'));
+error_log("🔍 Cookies recibidas en me.php: " . print_r($_COOKIE, true));
 
 
 // 🔹 Manejar preflight OPTIONS antes de procesar la solicitud
