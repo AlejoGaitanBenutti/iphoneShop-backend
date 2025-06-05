@@ -3,6 +3,8 @@ $allowed_origins = [
     "http://localhost:3000",
     "http://localhost:5173",
     "https://reliable-ecommerce.vercel.app",
+    "https://reliablecarsapp.com",
+    "https://www.reliablecarsapp.com",
 ];
 
 if (isset($_SERVER['HTTP_ORIGIN']) && in_array($_SERVER['HTTP_ORIGIN'], $allowed_origins)) {
