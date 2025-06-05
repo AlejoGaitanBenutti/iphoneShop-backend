@@ -26,7 +26,7 @@ class Email
 
             $mail->isHTML(true);
             $mail->Subject = 'Verifica tu cuenta';
-            $enlace = "http://localhost/backend/auth/verificar.php?token=" . $token;
+            $enlace = "https://backend-reliable.onrender.com/auth/verificar.php?token=" . $token;
             $mail->Body = "
                 <h2>Bienvenido a Reliable</h2>
                 <p>Por favor, verifica tu cuenta haciendo clic en el siguiente enlace:</p>
