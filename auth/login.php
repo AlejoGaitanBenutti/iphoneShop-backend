@@ -5,20 +5,20 @@ error_log("🔍 Se ejecutó login.php");
 require_once __DIR__ . '/../utils/init.php';
 require_once __DIR__ . "/../utils/cors.php";
 
-// 🔹 Verificar que sea POST
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);
     die(json_encode(["error" => "Método no permitido"]));
 }
 
-// 🔹 Leer y validar cuerpo JSON
 $json = file_get_contents("php://input");
+
 if (!$json) {
     error_log("❌ No se recibió JSON");
     die(json_encode(["error" => "No se recibió JSON en la petición"]));
 }
 
 $data = json_decode($json, true);
+
 if (!$data || empty($data["correo"]) || empty($data["password"])) {
     http_response_code(400);
     error_log("⚠️ Datos faltantes en la petición.");
@@ -42,13 +42,15 @@ if (isset($resultado["error"])) {
 }
 
 if (isset($resultado["token"])) {
+    $esProduccion = $_ENV['APP_ENV'] === 'production';
+
     setcookie("jwt", $resultado["token"], [
         "expires" => time() + 3600,
         "path" => "/",
-        "domain" => "", // localhost
-        "secure" => false,
+        "domain" => $esProduccion ? "backend-reliable.onrender.com" : "", // dominio solo en prod
+        "secure" => $esProduccion,
         "httponly" => true,
-        "samesite" => "Lax"
+        "samesite" => $esProduccion ? "None" : "Lax"
     ]);
 
     echo json_encode([
