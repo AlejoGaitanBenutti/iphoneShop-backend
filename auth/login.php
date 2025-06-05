@@ -53,6 +53,9 @@ if (isset($resultado["token"])) {
         "samesite" => $esProduccion ? "None" : "Lax"
     ]);
 
+    error_log("✅ Cookie enviada correctamente: " . print_r(headers_list(), true));
+
+
     echo json_encode([
         "mensaje" => "Login exitoso",
         "usuario" => [
