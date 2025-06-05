@@ -1,24 +1,23 @@
 <?php
 
-header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json');
-
+require_once __DIR__ . '/../utils/cors.php';
 include_once('../class/conexion.php');
 include_once('../class/usuarios.php');
+
+
+header("Content-Type: application/json");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+
+}
+
 
 // Conexión a la base de datos
 $database = new DataBase();
 $db = $database->getConnection();
 $usuarios = new Usuarios($db);
-
-
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
 
 
 // Obtener los datos JSON enviados desde el cliente
@@ -68,6 +67,8 @@ if ($resultado) {
     return;
 }
 
+
+error_log("Error en el registro: resultado no válido o fallo de inserción");
 // Si hubo un error en el registro
 echo json_encode(["mensaje" => "Error en el registro"]);
 
