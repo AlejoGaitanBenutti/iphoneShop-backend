@@ -85,7 +85,7 @@ class Usuarios
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$row['verificado']) {
-            return ["error" => "Cuenta no verificada"];
+            return ["error" => "Tu cuenta aún no ha sido verificada. Por favor revisa tu correo electrónico."];
         }
 
         if (password_verify($password, $row['password'])) {
@@ -99,7 +99,9 @@ class Usuarios
         }
     }
 
-    return false;
+    return ["error" => "Credenciales incorrectas"];
+
+
 }
 
 
