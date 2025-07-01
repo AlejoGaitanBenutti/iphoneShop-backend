@@ -1,0 +1,12 @@
+# Bloquear archivos PHP por seguridad
+<FilesMatch "\.(php|php5|phtml|phar)$">
+  Require all denied
+</FilesMatch>
+
+# Permitir el acceso a imágenes y archivos estáticos
+<IfModule mod_headers.c>
+  Header set Access-Control-Allow-Origin "*"
+</IfModule>
+
+Options -Indexes +FollowSymLinks
+Require all granted
