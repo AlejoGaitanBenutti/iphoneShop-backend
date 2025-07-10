@@ -84,7 +84,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             return;
         }
 
-        // EDITAR
   // EDITAR
 if ($accion === "editar" && (isset($_POST['id']) || isset($input['id']))) {
     try {

@@ -58,21 +58,24 @@ class Usuarios
         }
     }
 
-    private function generarJWT($correo, $rol, $nombre)
-    {
-        $payload = [
-            "iss" => "tu_sitio_web.com",
-            "aud" => "tu_sitio_web.com",
-            "iat" => time(),
-            "exp" => time() + 3600, // Expira en 1 hora
-            "data" => [
-                "correo" => $correo,
-                "rol" => $rol,
-                "nombre" => $nombre
-            ]
-        ];
-        return JWT::encode($payload, $this->clave_secreta, 'HS256');
-    }
+  private function generarJWT($id, $correo, $rol, $nombre)
+{
+    $payload = [
+        "iss" => "tu_sitio_web.com",
+        "aud" => "tu_sitio_web.com",
+        "iat" => time(),
+        "exp" => time() + 3600, // Expira en 1 hora
+        "data" => [
+            "id" => $id, // ✅ AHORA INCLUYE EL ID
+            "correo" => $correo,
+            "rol" => $rol,
+            "nombre" => $nombre
+        ]
+    ];
+
+    return JWT::encode($payload, $this->clave_secreta, 'HS256');
+}
+
 
    public function login($correo, $password)
 {
@@ -89,7 +92,9 @@ class Usuarios
         }
 
         if (password_verify($password, $row['password'])) {
-            $token = $this->generarJWT($row['correo'], $row['rol'], $row['nombre']);
+          $token = $this->generarJWT($row['id'], $row['correo'], $row['rol'], $row['nombre']);
+
+
             return [
                 "mensaje" => "Login exitoso",
                 "token" => $token,
@@ -179,4 +184,54 @@ class Usuarios
             throw new Exception("Error al actualizar el rol");
         }
 }
+
+
+
+public function loginConGoogle($nombre, $correo){
+
+    // Busca si el usuario ya existe
+
+    $query = "SELECT id, nombre, correo, rol FROM " . $this->table_name . " WHERE correo = :correo LIMIT 1";  
+    $stmt = $this->conexion->prepare($query);
+    $stmt ->bindParam(":correo", $correo);
+    $stmt->execute();
+
+
+    if($stmt->rowCount() > 0){
+        // Ya existe devolvemos datos y token
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $token = $this->generarJWT($row['id'], $row['correo'], $row['rol'], $row['nombre']);
+
+        return [
+            "mensaje" => "Login con Google exitoso",
+            "token" => $token,
+            "rol" => $row['rol'],
+            "nombre" => $row['nombre']
+        ];
+    }else{
+        // No existe, lo creamos como user verificado
+        $rol = 'user';
+        $verificado = 1; // Google lo verificó
+        $query = "INSERT INTO usuarios (nombre, correo, rol, verificado) VALUES (:nombre, :correo, :rol, :verificado)";
+        $stmt = $this->conexion->prepare($query);
+        $stmt->bindParam(":nombre", $nombre);
+        $stmt->bindParam(":correo", $correo);
+        $stmt->bindParam(":rol", $rol);
+        $stmt->bindParam(":verificado", $verificado);
+        $stmt->execute();
+
+        $id = $this->conexion->lastInsertId();
+        $token = $this->generarJWT($id, $correo, $rol, $nombre);
+
+        return [
+            "mensaje" => "Usuario creado con Google",
+            "token" => $token,
+            "rol" => $rol,
+            "nombre" => $nombre
+        ];
+
+    }
+
+}
+
 }
