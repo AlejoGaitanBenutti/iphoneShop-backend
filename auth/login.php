@@ -42,7 +42,8 @@ if (isset($resultado["error"])) {
 }
 
 if (isset($resultado["token"])) {
-    $esProduccion = $_ENV['APP_ENV'] === 'production';
+   $entorno = getenv('APP_ENV') ?: 'local';
+$esProduccion = $entorno === 'production';
 
     setcookie("jwt", $resultado["token"], [
         "expires" => time() + 3600,

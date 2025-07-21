@@ -1,8 +1,7 @@
 <?php
-
+require_once __DIR__ . '/../../utils/cors.php';
 require_once __DIR__ . '/../../class/Usuarios.php';
 require_once __DIR__ . '/../../utils/init.php';
-require_once __DIR__ . '/../../utils/cors.php';
 require_once __DIR__ . '/../../class/authMiddleware.php';
 
 authMiddleware::verificarAdmin();
