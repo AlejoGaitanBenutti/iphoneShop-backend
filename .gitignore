@@ -1,17 +1,4 @@
-# Evitar que suba variables locales
-.env
-.env.local
-
-# Certificados locales
-
-
-# Composer
-/vendor
-
-# Archivos del sistema
+.env*
+vendor/
 .DS_Store
-Thumbs.db
-
-
-
-render.yaml
+*:Zone.Identifier
