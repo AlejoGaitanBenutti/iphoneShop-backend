@@ -4,10 +4,10 @@
 header('Content-Type: application/json');
 
 echo json_encode([
-    "app" => "Reliable ERP API",
+    "app" => "iphoneShop",
     "status" => "online",
     "version" => "1.0.0",
-    "message" => "Bienvenido a la API de Reliable ERP 🚀",
+    "message" => "Bienvenido a la API de IphoneShop🚀",
     "endpoints" => [
         "Auth" => [
             "/auth/login.php",

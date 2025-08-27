@@ -3,7 +3,7 @@
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
-$allowed_origins = ["http://localhost:3000", "http://localhost:5173"];
+$allowed_origins = ["http://localhost:3000"];
 
 if (isset($_SERVER["HTTP_ORIGIN"]) && in_array($_SERVER["HTTP_ORIGIN"], $allowed_origins)) {
     header("Access-Control-Allow-Origin: " . $_SERVER["HTTP_ORIGIN"]);
@@ -110,54 +110,6 @@ class Usuarios
 }
 
 
-    public function registrar($nombre, $correo, $password, $username)
-    {
-        $rol = 'user';
-
-        // Verificar si el correo ya está registrado
-        $query = "SELECT id FROM " . $this->table_name . " WHERE correo = :correo LIMIT 1";
-        $stmt = $this->conexion->prepare($query);
-        $stmt->bindParam(":correo", $correo);
-        $stmt->execute();
-
-        if ($stmt->rowCount() > 0) {
-            error_log("Correo ya registrado: " . $correo);
-            return "correo_en_uso";
-        }
-
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $token_verificacion = bin2hex(random_bytes(32));
-
-        $query = "INSERT INTO usuarios (nombre, correo, password, rol, username, verificado, token_verificacion) 
-                VALUES (:nombre, :correo, :password, :rol, :username, 0, :token_verificacion)";
-
-        $stmt = $this->conexion->prepare($query);
-        $stmt->bindParam(":nombre", $nombre);
-        $stmt->bindParam(":correo", $correo);
-        $stmt->bindParam(":password", $hashedPassword);
-        $stmt->bindParam(":rol", $rol);
-        $stmt->bindParam(":username", $username);
-        $stmt->bindParam(":token_verificacion", $token_verificacion);
-
-        try {
-            $stmt->execute();
-            $lastInsertId = $this->conexion->lastInsertId();
-
-            $email = new Email();
-            $email->enviarCorreoVerificacion($correo, $token_verificacion);
-
-            return [
-                'id' => $lastInsertId,
-                'nombre' => $nombre,
-                "correo" => $correo,
-                'rol' => $rol,
-                "username" => $username
-            ];
-        } catch (PDOException $e) {
-            error_log("Error SQL: " . $e->getMessage());
-            return false;
-        }
-    }
 
      public function listarUsuarios()
     {

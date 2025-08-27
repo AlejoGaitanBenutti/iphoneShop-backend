@@ -1,20 +1,11 @@
 <?php
-$allowed_origins = [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "https://reliable-ecommerce.vercel.app",
-    "https://reliablecarsapp.com",
-    "https://www.reliablecarsapp.com",
-];
-
-if (isset($_SERVER['HTTP_ORIGIN']) && in_array($_SERVER['HTTP_ORIGIN'], $allowed_origins)) {
-    header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_ORIGIN']);
-    header("Access-Control-Allow-Credentials: true");
-    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-    header("Access-Control-Allow-Headers: Content-Type, Authorization, Cookie, Set-Cookie");
+$allowed = ['http://localhost:3000','http://127.0.0.1:3000'];
+$o = $_SERVER['HTTP_ORIGIN'] ?? '';
+if ($o && in_array($o, $allowed, true)) {
+  header("Access-Control-Allow-Origin: $o");
+  header('Vary: Origin');
+  header('Access-Control-Allow-Credentials: true');
+  header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept');
 }
-
-if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
-    http_response_code(200);
-    exit;
-}
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }

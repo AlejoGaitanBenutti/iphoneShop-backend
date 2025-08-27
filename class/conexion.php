@@ -23,8 +23,8 @@ class Database
             ];
         } else {
             $host = $_ENV['DB_HOST_LOCAL'] ?? 'localhost';
-            $port = $_ENV['DB_PORT_LOCAL'] ?? '3306';
-            $dbname = $_ENV['DB_NAME_LOCAL'] ?? 'reliable';
+            $port = $_ENV['DB_PORT_LOCAL'] ?? '3308';
+            $dbname = $_ENV['DB_NAME_LOCAL'] ?? 'iphoneshop';
             $user = $_ENV['DB_USER_LOCAL'] ?? 'root';
             $pass = $_ENV['DB_PASS_LOCAL'] ?? '';
 

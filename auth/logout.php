@@ -2,36 +2,35 @@
 require_once __DIR__ . '/../utils/init.php';
 require_once __DIR__ . '/../utils/cors.php';
 
-if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
-    http_response_code(200);
-    exit;
+header('Content-Type: application/json; charset=utf-8');
+
+// Preflight
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+  http_response_code(204);
+  exit;
 }
 
-$esProduccion = $_ENV['APP_ENV'] === 'production';
-$domain = $esProduccion ? "backend-reliable.onrender.com" : "";
+$entorno = getenv('APP_ENV') ?: 'local';
+$esProduccion = ($entorno === 'production');
 
-// 🔸 Borrar cookie sin dominio (funciona en localhost y algunos navegadores en prod)
-setcookie("jwt", "", [
-    "expires" => time() - 3600,
-    "path" => "/",
-    "httponly" => true,
-    "samesite" => $esProduccion ? "None" : "Lax",
-    "secure" => $esProduccion,
-]);
+// ⚠️ IMPORTANTE: usá los mismos parámetros que al setear la cookie en login.php
+$opts = [
+  'expires'  => time() - 3600,             // expirada
+  'path'     => '/',
+  'secure'   => $esProduccion,             // true solo en prod
+  'httponly' => true,
+  'samesite' => $esProduccion ? 'None' : 'Lax',
+];
 
-// 🔸 Borrar cookie con dominio explícito (para Safari / Chrome estrictos en producción)
+// En producción, si seteaste domain al crearla, también hay que pasarlo acá
 if ($esProduccion) {
-    setcookie("jwt", "", [
-        "expires" => time() - 3600,
-        "path" => "/",
-        "domain" => $domain,
-        "httponly" => true,
-        "samesite" => "None",
-        "secure" => true,
-    ]);
+  // ajustá a tu dominio real si usaste 'domain' en login.php
+  $opts['domain'] = 'backend-reliable.onrender.com';
 }
 
+setcookie('jwt', '', $opts);
+
+// Limpieza local (no borra la cookie del navegador, pero evita usarla server-side)
 unset($_COOKIE['jwt']);
 
-echo json_encode(["success" => true, "mensaje" => "Sesión cerrada correctamente"]);
-exit;
+echo json_encode(['ok' => true, 'mensaje' => 'Sesión cerrada correctamente']);
