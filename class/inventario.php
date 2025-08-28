@@ -28,8 +28,8 @@ final class Inventario
 
         // búsqueda libre
         if (!empty($q['q'])) {
-            $where[]      = '(p.modelo LIKE :q OR p.color LIKE :q OR p.sku LIKE :q)';
-            $bind[':q']   = '%' . $q['q'] . '%';
+            $where[]    = '(p.modelo LIKE :q OR p.color LIKE :q OR p.sku LIKE :q)';
+            $bind[':q'] = '%' . $q['q'] . '%';
         }
 
         if (!empty($q['modelo']) && $q['modelo'] !== 'all') {
@@ -69,9 +69,43 @@ final class Inventario
 
         // imagen principal
         $imgExpr = '(SELECT url FROM productos_imagenes pi
-                    WHERE pi.producto_id = p.id
-                    ORDER BY pi.es_principal DESC, pi.id ASC
-                    LIMIT 1) AS imagen_url';
+                     WHERE pi.producto_id = p.id
+                     ORDER BY pi.es_principal DESC, pi.id ASC
+                     LIMIT 1) AS imagen_url';
+
+        // datos de permuta/ingreso vinculados a venta
+        $tradeExprs = "
+            (SELECT im.costo_unit
+               FROM inventario_movimientos im
+              WHERE im.producto_id = p.id
+                AND im.tipo = 'permuta_ingreso'
+              ORDER BY im.id ASC
+              LIMIT 1) AS recibido_valor,
+
+            (SELECT im.fecha
+               FROM inventario_movimientos im
+              WHERE im.producto_id = p.id
+                AND im.tipo = 'permuta_ingreso'
+              ORDER BY im.id ASC
+              LIMIT 1) AS recibido_fecha,
+
+            (SELECT v.id
+               FROM inventario_movimientos im
+               JOIN ventas v ON v.id = im.venta_id
+              WHERE im.producto_id = p.id
+                AND im.tipo = 'permuta_ingreso'
+              ORDER BY im.id ASC
+              LIMIT 1) AS recibido_venta_id,
+
+            (SELECT COALESCE(c.nombre, JSON_UNQUOTE(JSON_EXTRACT(v.comprador_snapshot, '$.nombre')))
+               FROM inventario_movimientos im
+               JOIN ventas v ON v.id = im.venta_id
+          LEFT JOIN clientes c ON c.id = v.cliente_id
+              WHERE im.producto_id = p.id
+                AND im.tipo = 'permuta_ingreso'
+              ORDER BY im.id ASC
+              LIMIT 1) AS recibido_cliente
+        ";
 
         // total
         $stCount = $this->pdo->prepare("SELECT COUNT(*) FROM productos p $whereSql");
@@ -95,7 +129,7 @@ final class Inventario
         $k = $stKpi->fetch() ?: ['total'=>0,'valor_venta'=>0,'valor_costo'=>0,'nuevos'=>0,'usados'=>0];
 
         // items
-        $sql = "SELECT p.*, $imgExpr
+        $sql = "SELECT p.*, $imgExpr, $tradeExprs
                 FROM productos p
                 $whereSql
                 ORDER BY $order
@@ -114,6 +148,9 @@ final class Inventario
             if (isset($r['bateria_ciclos']))    $r['bateria_ciclos']    = (int)$r['bateria_ciclos'];
             if (isset($r['costo']))             $r['costo']             = (float)$r['costo'];
             if (isset($r['precio_lista']))      $r['precio_lista']      = (float)$r['precio_lista'];
+            if (array_key_exists('recibido_valor', $r) && $r['recibido_valor'] !== null) {
+                $r['recibido_valor'] = (float)$r['recibido_valor'];
+            }
         }
         unset($r);
 
@@ -134,16 +171,62 @@ final class Inventario
         ];
     }
 
-    /** Obtener un producto (lectura simple con imagen principal) */
+    /** Obtener un producto (lectura simple con imagen principal y datos de permuta) */
     public function obtener(int $id): ?array
     {
         $imgExpr = '(SELECT url FROM productos_imagenes pi
                      WHERE pi.producto_id = p.id
                      ORDER BY pi.es_principal DESC, pi.id ASC
                      LIMIT 1) AS imagen_url';
-        $st = $this->pdo->prepare("SELECT p.*, $imgExpr FROM productos p WHERE p.id = :id");
+
+        $tradeExprs = "
+            (SELECT im.costo_unit
+               FROM inventario_movimientos im
+              WHERE im.producto_id = p.id
+                AND im.tipo = 'permuta_ingreso'
+              ORDER BY im.id ASC
+              LIMIT 1) AS recibido_valor,
+
+            (SELECT im.fecha
+               FROM inventario_movimientos im
+              WHERE im.producto_id = p.id
+                AND im.tipo = 'permuta_ingreso'
+              ORDER BY im.id ASC
+              LIMIT 1) AS recibido_fecha,
+
+            (SELECT v.id
+               FROM inventario_movimientos im
+               JOIN ventas v ON v.id = im.venta_id
+              WHERE im.producto_id = p.id
+                AND im.tipo = 'permuta_ingreso'
+              ORDER BY im.id ASC
+              LIMIT 1) AS recibido_venta_id,
+
+            (SELECT COALESCE(c.nombre, JSON_UNQUOTE(JSON_EXTRACT(v.comprador_snapshot, '$.nombre')))
+               FROM inventario_movimientos im
+               JOIN ventas v ON v.id = im.venta_id
+          LEFT JOIN clientes c ON c.id = v.cliente_id
+              WHERE im.producto_id = p.id
+                AND im.tipo = 'permuta_ingreso'
+              ORDER BY im.id ASC
+              LIMIT 1) AS recibido_cliente
+        ";
+
+        $st = $this->pdo->prepare("SELECT p.*, $imgExpr, $tradeExprs FROM productos p WHERE p.id = :id");
         $st->execute([':id' => $id]);
         $row = $st->fetch();
+
+        if ($row) {
+            if (isset($row['almacenamiento_gb'])) $row['almacenamiento_gb'] = (int)$row['almacenamiento_gb'];
+            if (isset($row['bateria_salud']))     $row['bateria_salud']     = (int)$row['bateria_salud'];
+            if (isset($row['bateria_ciclos']))    $row['bateria_ciclos']    = (int)$row['bateria_ciclos'];
+            if (isset($row['costo']))             $row['costo']             = (float)$row['costo'];
+            if (isset($row['precio_lista']))      $row['precio_lista']      = (float)$row['precio_lista'];
+            if (array_key_exists('recibido_valor', $row) && $row['recibido_valor'] !== null) {
+                $row['recibido_valor'] = (float)$row['recibido_valor'];
+            }
+        }
+
         return $row ?: null;
     }
 }

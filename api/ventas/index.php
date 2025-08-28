@@ -36,11 +36,19 @@ try {
     $accion = $in('accion', '');
     if ($accion === 'crear') {
       $data = [
-        'cliente_id'  => $in('cliente_id'),
-        'metodo_pago' => $in('metodo_pago', 'efectivo'),
-        'descuento'   => $in('descuento', 0),
-        'impuestos'   => $in('impuestos', 0),
-        'items'       => $in('items', []), // [{producto_id, precio_unit}]
+        'cliente_id'     => $in('cliente_id'),
+        'cliente'        => $in('cliente', null),
+        'items'          => $in('items', []),
+        'descuento'      => $in('descuento', 0),
+        'impuestos'      => $in('impuestos', 0),
+        'subtotal'       => $in('subtotal', 0),
+        'total'          => $in('total', 0),
+        'trade_in'       => $in('trade_in', null),     // incluye bateria_salud si viene
+        'pagos'          => $in('pagos', []),
+        'total_a_cobrar' => $in('total_a_cobrar', 0),
+        'total_pagado'   => $in('total_pagado', 0),
+        'tasa_ars_usd'   => $in('tasa_ars_usd', null),
+        'metodo_pago'    => $in('metodo_pago', 'efectivo'),
       ];
       $res = $ventas->crearVenta($data);
       echo json_encode(['success' => true] + $res);
